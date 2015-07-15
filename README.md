@@ -5,7 +5,7 @@ Python 2.7 with no dependencies.
 ##usage:
     pair_products.py --username=<user> --password=<pass> --datahub=<datahub> --query=<query>
 ###options: 
-    --slc-only
+    --slc-only : returns only SLC products 
 ### example
     pair_products.py --username=xxx --password=xxx --datahub="https://scihub.esa.int/dhus" --query="Rome"
-    
+    pair_products.py --username=xxx --password=xxx --datahub="https://scihub.esa.int/dhus" --query=""

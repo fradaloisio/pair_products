@@ -3,42 +3,28 @@ from xml.dom import minidom
 import datetime
 import time
 import sys
-import getopt
+import argparse
 
 def main(argv):
-    try:
-        opts, args = getopt.getopt(argv,"hup:dqs",["username=","password=","datahub=","query=","slc-only"])
-    except getopt.GetoptError:
-        print 'pair_products.py --username=<user> --password=<pass> --datahub=<datahub> --query=<query>'
-        print 'options: --slc-only'
-        sys.exit(2)
 
-    username = ''
-    password = ''
-    datahub  = ''
-    query    = ''
-    max_limit= '10000'
+    parser = argparse.ArgumentParser(description='Description of your program')
+    parser.add_argument('-u','--username', help='DataHub username', required=True)
+    parser.add_argument('-p','--password', help='DataHub password', required=True)
+    parser.add_argument('-d','--datahub', help='DataHub link', required=True)
+    parser.add_argument('-q','--query', help='Query to perform', required=True,type=str)
+    args = vars(parser.parse_args())
 
-    for opt, arg in opts:
-        if opt == '-h':
-            print 'pair_products.py --username=<user> --password=<pass> --datahub=<datahub> --query=<query>'
-            print 'options: --slc-only'
-            sys.exit()
-        elif opt in ("-u", "--username"):
-            username = arg
-        elif opt in ("-p", "--password"):
-            password = arg
-        elif opt in ("-d", "--datahub"):
-            datahub = arg
-        elif opt in ("-q", "--query"):
-            query = arg
-        elif opt in ("s","--slc-only"):
-            query =  query + " AND SLC"
+    username    = args["username"]
+    password    = args["password"]
+    datahub     = args["datahub"]
+    query       = args["query"]
+
+    max_limit   = '10000'   # Max number of products per query
+    MAX_DIFF = 10           # Max difference between start sensing time
 
     url = datahub + "/search?q=" + query + "&rows=" + max_limit
     print url
     if (url.split("://")[0] != "https" and url.split("://")[0] != "http"):
-        print("protocol not found, trying with http")
         url = "http://" + url.split("://")[1]
 
     url = url.split("://")[0] +"://"+ username+":"+password+"@"+url.split("://")[1]
@@ -46,8 +32,6 @@ def main(argv):
     usock = urllib.urlopen(url)
     xmldoc = minidom.parse(usock)
 
-    # Max difference between start sensing time
-    MAX_DIFF = 10
 
     itemlist = xmldoc.getElementsByTagName('entry')
     print("found " + str(itemlist.length) + " products")
@@ -76,6 +60,7 @@ def main(argv):
                 # find next
                 for j in range(i,itemlist.length):
                     nProd = "undefined"
+                    nRon = 0
                     nStrs = itemlist[j].getElementsByTagName('str')
                     for nStr in nStrs:
                         if (nStr.attributes['name'].value == "filename"):
@@ -98,9 +83,4 @@ def main(argv):
     usock.close()
 
 if __name__ == '__main__':
-    if not sys.argv[1:]:
-        print 'pair_products.py --username=<user> --password=<pass> --datahub=<datahub> --query=<query>'
-        print 'options: --slc-only'
-        sys.exit(2)
-
-    else: main(sys.argv[1:])
+    main(sys.argv[1:])
